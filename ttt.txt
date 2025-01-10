@@ -1,0 +1,126 @@
+// Pins for Motor A "Left"
+#define IN1 13
+#define IN2 12
+
+// Pins for Motor B "Right"
+#define IN3 9
+#define IN4 8
+
+// Pins for Ultrasonic Sensor "Front"
+#define TRIG_PIN1 4
+#define ECHO_PIN1 5
+
+// Pins for Ultrasonic Sensor "Right"
+#define TRIG_PIN2 2
+#define ECHO_PIN2 3
+
+// Speed of sound in cm/us
+#define SOUND_SPEED 0.034
+
+void setup() {
+  // Initialize motor pins as output
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  // Initialize ultrasonic sensor pins
+  pinMode(TRIG_PIN1, OUTPUT);
+  pinMode(ECHO_PIN1, INPUT);
+  pinMode(TRIG_PIN2, OUTPUT);
+  pinMode(ECHO_PIN2, INPUT);
+
+  // Start serial communication for debugging
+  Serial.begin(9600);
+
+  delay(1500);
+}
+
+// Function to measure distance using an ultrasonic sensor
+float measureDistance(int trigPin, int echoPin) {
+  // Send a 10us pulse to trigger pin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Read the echo pin, and calculate the distance
+  long duration = pulseIn(echoPin, HIGH);
+  float distance = (duration * SOUND_SPEED) / 2;  // Distance in cm
+  return distance;
+}
+
+// Function to move motors forward
+void moveForward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+// Function to move motors backward
+void moveBackward() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+// Function to turn motors right
+void turnRight() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+// Function to turn motors left
+void turnLeft() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+// Function to stop motors
+void stopMotors() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void loop() {
+  // Measure distances from both ultrasonic sensors
+  float distanceFront = measureDistance(TRIG_PIN1, ECHO_PIN1);
+  float distanceRight = measureDistance(TRIG_PIN2, ECHO_PIN2);
+
+  // Print distances for debugging
+  Serial.print("Distance 1: ");
+  Serial.print(distanceFront);
+  Serial.print(" cm\tDistance 2: ");
+  Serial.println(distanceRight);
+  moveForward();
+  if (distanceRight > 20 && distanceFront < 20) {
+    while (distanceFront < 30) {
+      turnRight();
+    }
+  } else if (distanceRight > 20 && distanceFront < 30) {
+    while (distanceRight > 20) {
+      turnRight();
+    }
+  } else if (distanceRight > 20 && distanceFront > 30) {
+    while (distanceFront > 30) {
+      turnRight();
+    }
+  } else if (distanceRight < 20 && distanceFront < 30) {
+    while (distanceFront < 30) {
+      turnLeft();
+    }
+  } else if (distanceRight < 20 && distanceFront > 30) {
+    while (distanceRight < 20 && distanceFront > 30) {
+      moveForward();
+    }
+  }
+}
